@@ -1,0 +1,82 @@
+package org.poo.platform;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.poo.fileio.*;
+import org.poo.platform.commands.Command;
+import org.poo.platform.commands.debug_commands.PrintTransactions;
+import org.poo.platform.commands.debug_commands.PrintUsers;
+import org.poo.platform.commands.workflow_commands.*;
+import org.poo.utils.Utils;
+
+import java.util.ArrayList;
+
+public class Bank {
+    private ArrayList<User> users;
+    private ArrayList<Exchange> exchangeRates;
+    private ArrayList<Commerciant> commerciants;
+    private ObjectInput input;
+    private ArrayNode output;
+
+    public Bank(final ObjectInput input, final ArrayNode output) {
+        users = new ArrayList<>();
+        exchangeRates = new ArrayList<>();
+        commerciants = new ArrayList<>();
+        this.input = input;
+        this.output = output;
+        for (UserInput user : input.getUsers()) {
+            users.add(new User(user.getFirstName(), user.getLastName(), user.getEmail()));
+        }
+        for (ExchangeInput exchange : input.getExchangeRates()) {
+            exchangeRates.add(new Exchange(exchange.getFrom(), exchange.getTimestamp(), exchange.getRate(), exchange.getTo()));
+        }
+        if (input.getCommerciants() != null) {
+            for (CommerciantInput commerciant : input.getCommerciants()) {
+                commerciants.add(new Commerciant(commerciant.getCommerciants(), commerciant.getDescription(), commerciant.getId()));
+            }
+        }
+
+    }
+
+    public void start() {
+        for (CommandInput commandInput : input.getCommands()) {
+            Command command = null;
+            switch (commandInput.getCommand()) {
+                case "printTransactions" : {
+                    command = new PrintTransactions();
+                    break;
+                }
+                case "deleteAccount" : {
+                    command = new DeleteAccount(commandInput.getAccount(), commandInput.getTimestamp(), commandInput.getEmail(), users, output);
+                    break;
+                }
+                case "printUsers" : {
+                    command = new PrintUsers(users, commandInput.getTimestamp(), output);
+                    break;
+                }
+                case "addAccount" : {
+                    command = new AddAccount(commandInput.getEmail(), commandInput.getCurrency(), commandInput.getAccountType(), commandInput.getTimestamp(), commandInput.getInterestRate(), users);
+                    break;
+                }
+                case "addFunds" : {
+                    command = new AddFunds(commandInput.getAccount(), commandInput.getAmount(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "createCard" : {
+                    command = new CreateCard(commandInput.getEmail(), commandInput.getAccount(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "createOneTimeCard" : {
+                    command = new CreateOneTimeCard(commandInput.getEmail(), commandInput.getAccount(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "deleteCard" : {
+                    command = new DeleteCard(commandInput.getCardNumber(), commandInput.getTimestamp(), users);
+                }
+            }
+            if (command != null) {
+                command.operation();
+            }
+        }
+        Utils.resetRandom();
+    }
+}

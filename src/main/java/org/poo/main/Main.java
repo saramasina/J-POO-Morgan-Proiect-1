@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.poo.checker.Checker;
 import org.poo.checker.CheckerConstants;
 import org.poo.fileio.ObjectInput;
+import org.poo.platform.Bank;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,6 +93,8 @@ public final class Main {
          * output.add(objectNode);
          *
          */
+        Bank bank = new Bank(inputData, output);
+        bank.start();
 
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         objectWriter.writeValue(new File(filePath2), output);
