@@ -1,5 +1,7 @@
 package org.poo.platform.commands.workflow_commands;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.Account;
 import org.poo.platform.ClassicAccount;
 import org.poo.platform.SavingsAccount;
@@ -38,5 +40,12 @@ public class AddAccount extends Command {
             account = new SavingsAccount(currency, interestRate);
         }
         user.addAccount(account);
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode outputNode = mapper.createObjectNode();
+        outputNode.put("description", "New account created");
+        outputNode.put("timestamp", timestamp);
+
+        user.getTransactions().add(outputNode);
     }
 }

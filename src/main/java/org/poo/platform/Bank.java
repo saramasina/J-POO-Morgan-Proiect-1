@@ -11,11 +11,11 @@ import org.poo.utils.Utils;
 import java.util.ArrayList;
 
 public class Bank {
-    private ArrayList<User> users;
-    private ArrayList<Exchange> exchangeRates;
+    private final ArrayList<User> users;
+    private final ArrayList<Exchange> exchangeRates;
     private ArrayList<Commerciant> commerciants;
-    private ObjectInput input;
-    private ArrayNode output;
+    private final ObjectInput input;
+    private final ArrayNode output;
 
     public Bank(final ObjectInput input, final ArrayNode output) {
         users = new ArrayList<>();
@@ -41,10 +41,6 @@ public class Bank {
         for (CommandInput commandInput : input.getCommands()) {
             Command command = null;
             switch (commandInput.getCommand()) {
-                case "printTransactions" : {
-                    command = new PrintTransactions();
-                    break;
-                }
                 case "deleteAccount" : {
                     command = new DeleteAccount(commandInput.getAccount(), commandInput.getTimestamp(), commandInput.getEmail(), users, output);
                     break;
@@ -71,6 +67,23 @@ public class Bank {
                 }
                 case "deleteCard" : {
                     command = new DeleteCard(commandInput.getCardNumber(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "payOnline" : {
+                    command = new PayOnline(commandInput.getCardNumber(), commandInput.getAmount(), commandInput.getCurrency(), commandInput.getTimestamp(), commandInput.getDescription(), commandInput.getCommerciant(), commandInput.getEmail(), users, exchangeRates, output);
+                    break;
+                }
+                case "sendMoney" : {
+                    command = new SendMoney(commandInput.getAccount(), commandInput.getReceiver(), commandInput.getAmount(), commandInput.getTimestamp(), commandInput.getDescription(), users, exchangeRates, commandInput.getAlias());
+                    break;
+                }
+                case "setAlias" : {
+                    command = new SetAlias(commandInput.getEmail(), commandInput.getAccount(), commandInput.getAlias(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "printTransactions" : {
+                    command = new PrintTransactions(commandInput.getEmail(), commandInput.getTimestamp(), users, output);
+                    break;
                 }
             }
             if (command != null) {

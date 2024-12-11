@@ -1,5 +1,6 @@
 package org.poo.platform;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,8 @@ public class Account {
     private String type;
     @Getter @Setter
     private ArrayList<Card> cards;
+    @Getter @Setter @JsonIgnore
+    private String alias;
 
     public Account() {
         cards = new ArrayList<>();
@@ -28,6 +31,7 @@ public class Account {
         this.balance = account.balance;
         this.type = account.type;
         this.cards = new ArrayList<>();
+        this.alias = account.alias;
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }

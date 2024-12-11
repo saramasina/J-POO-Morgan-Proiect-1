@@ -1,5 +1,8 @@
 package org.poo.platform;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,12 +17,16 @@ public class User {
     private String email;
     @Getter @Setter
     private ArrayList<Account> accounts;
+    @Getter @Setter @JsonIgnore
+    private ArrayNode transactions;
 
     public User(String firstName, String lastName, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         accounts = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        transactions = mapper.createArrayNode();
     }
 
     public void addAccount(Account account) {
@@ -27,9 +34,9 @@ public class User {
     }
 
     public User(User user) {
-        this.firstName = user.getFirstName();
-        this.lastName = user.getLastName();
-        this.email = user.getEmail();
+        this.firstName = user.firstName;
+        this.lastName = user.lastName;
+        this.email = user.email;
         this.accounts = new ArrayList<>();
         if (user.getAccounts().size() != 0) {
             for (Account account_out : user.accounts) {

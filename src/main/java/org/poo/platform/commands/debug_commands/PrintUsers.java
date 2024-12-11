@@ -30,7 +30,7 @@ public class PrintUsers extends Command {
 
 
         objectNode.putPOJO("output", users);
-        objectNode.putPOJO("timestamp", timestamp);
+        objectNode.put("timestamp", timestamp);
 
         output.add(objectNode);
     }

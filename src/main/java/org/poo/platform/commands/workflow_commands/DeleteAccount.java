@@ -35,21 +35,35 @@ public class DeleteAccount extends Command {
         if (account != null && account.getBalance() == 0) {
             int index = user.getAccounts().indexOf(account);
             user.getAccounts().remove(index);
+
+
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode objectNode = mapper.createObjectNode();
+            objectNode.put("command", "deleteAccount");
+
+            ObjectNode outputNode = mapper.createObjectNode();
+            outputNode.put("success", "Account deleted");
+            outputNode.putPOJO("timestamp", timestamp);
+
+            objectNode.set("output", outputNode);
+
+            // Add additional fields
+            objectNode.putPOJO("timestamp", timestamp);
+            output.add(objectNode);
+        } else {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode objectNode = mapper.createObjectNode();
+            objectNode.put("command", "deleteAccount");
+
+            ObjectNode outputNode = mapper.createObjectNode();
+            outputNode.put("error", "Account couldn't be deleted - see org.poo.transactions for details");
+            outputNode.putPOJO("timestamp", timestamp);
+
+            objectNode.set("output", outputNode);
+
+            // Add additional fields
+            objectNode.putPOJO("timestamp", timestamp);
+            output.add(objectNode);
         }
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode objectNode = mapper.createObjectNode();
-        objectNode.put("command", "deleteAccount");
-
-        ObjectNode outputNode = mapper.createObjectNode();
-        outputNode.put("success", "Account deleted");
-        outputNode.putPOJO("timestamp", timestamp);
-
-        objectNode.set("output", outputNode);
-
-        // Add additional fields
-        objectNode.putPOJO("timestamp", timestamp);
-
-        output.add(objectNode);
     }
 }

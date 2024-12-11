@@ -1,5 +1,6 @@
 package org.poo.platform;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.poo.utils.Utils;
@@ -7,13 +8,20 @@ import org.poo.utils.Utils;
 import java.util.ArrayList;
 
 public class SavingsAccount extends Account {
+    @Getter @Setter
     private String currency;
+    @Getter @Setter
     private String IBAN;
     @Getter @Setter
     private double balance;
+    @Getter @Setter
     private String type;
+    @Getter @Setter
     private ArrayList<org.poo.platform.Card> cards;
+    @Getter @Setter @JsonIgnore
     private double interestRate;
+    @Getter @Setter @JsonIgnore
+    private String alias;
 
     @Override
     public ArrayList<Card> getCards() {
@@ -54,5 +62,6 @@ public class SavingsAccount extends Account {
             this.cards.add(new Card(card));
         }
         this.interestRate = account.interestRate;
+        this.alias = account.alias;
     }
 }
