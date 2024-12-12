@@ -20,6 +20,10 @@ public class Account {
     private ArrayList<Card> cards;
     @Getter @Setter @JsonIgnore
     private String alias;
+    @Getter @Setter @JsonIgnore
+    private double minBalance;
+    @Getter @Setter @JsonIgnore
+    private boolean frozen;
 
     public Account() {
         cards = new ArrayList<>();
@@ -32,6 +36,8 @@ public class Account {
         this.type = account.type;
         this.cards = new ArrayList<>();
         this.alias = account.alias;
+        this.minBalance = account.minBalance;
+        this.frozen = account.isFrozen();
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }

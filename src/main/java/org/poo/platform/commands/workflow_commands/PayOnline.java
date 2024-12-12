@@ -7,7 +7,6 @@ import org.poo.platform.*;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
-import java.util.Currency;
 
 public class PayOnline extends Command {
     private String toCurrency;
@@ -45,6 +44,17 @@ public class PayOnline extends Command {
         }
     }
 
+    public static double conditionalRound(double number, int precision) {
+        double scale = Math.pow(10, precision); // Pentru a controla precizia
+        double roundedValue = Math.round(number * scale) / scale; // Valoarea rotunjită
+
+        // Verificăm dacă numărul este aproape de valoarea rotunjită
+        if (Math.abs(number - roundedValue) < 0.0001) {
+            return roundedValue;
+        }
+        return number; // Dacă nu este aproape, returnează numărul original
+    }
+
     @Override
     public void operation() {
         if (account == null) {
@@ -66,9 +76,23 @@ public class PayOnline extends Command {
         if (fromCurrency != null && toCurrency != null && !fromCurrency.equals(toCurrency)) {
             amount = converter.convert(fromCurrency, toCurrency, amount);
         }
+        if (account != null && ((account.getMinBalance() != 0 && (account.getBalance() - amount <= account.getMinBalance())) || account.isFrozen())) {
+            account.setFrozen(true);
+            for (Card card : account.getCards()) {
+                card.setStatus("frozen");
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode outputNode = mapper.createObjectNode();
+            outputNode.put("description", "The card is frozen");
+            outputNode.put("timestamp", timestamp);
+
+            user.getTransactions().add(outputNode);
+            return;
+        }
         if (account != null && (account.getBalance() - amount >= 0)) {
             account.setBalance(account.getBalance() - amount);
 
+            conditionalRound(amount, 1);
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode outputNode = mapper.createObjectNode();
             outputNode.put("description", "Card payment");
@@ -77,6 +101,7 @@ public class PayOnline extends Command {
             outputNode.put("amount", amount);
 
             user.getTransactions().add(outputNode);
+            return;
         }
         if (account != null && (account.getBalance() - amount < 0)) {
             ObjectMapper mapper = new ObjectMapper();

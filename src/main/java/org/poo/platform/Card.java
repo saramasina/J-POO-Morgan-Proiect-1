@@ -12,7 +12,6 @@ public class Card {
 
     public Card() {
         cardNumber = Utils.generateCardNumber();
-        status = "active";
     }
 
     public Card(Card card) {

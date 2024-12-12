@@ -21,6 +21,10 @@ public class ClassicAccount extends Account{
     private ArrayList<Card> cards;
     @Getter @Setter @JsonIgnore
     private String alias;
+    @Getter @Setter @JsonIgnore
+    private double minBalance;
+    @Getter @Setter @JsonIgnore
+    private boolean frozen;
 
     @Override
     public ArrayList<Card> getCards() {
@@ -47,6 +51,7 @@ public class ClassicAccount extends Account{
         IBAN = Utils.generateIBAN();
         balance = 0;
         cards = new ArrayList<>();
+        minBalance = 0;
     }
 
     public ClassicAccount(ClassicAccount account) {
@@ -56,6 +61,8 @@ public class ClassicAccount extends Account{
         this.type = account.type;
         this.cards = new ArrayList<>();
         this.alias = account.alias;
+        this.minBalance = account.minBalance;
+        this.frozen = account.isFrozen();
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }

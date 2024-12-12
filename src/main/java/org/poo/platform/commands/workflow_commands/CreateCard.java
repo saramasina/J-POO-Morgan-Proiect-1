@@ -31,6 +31,11 @@ public class CreateCard extends Command {
             for (Account accountUser : user.getAccounts()) {
                 if (accountUser.getIBAN().equals(IBAN)) {
                     card = new Card();
+                    if (accountUser.isFrozen()) {
+                        card.setStatus("frozen");
+                    } else {
+                        card.setStatus("active");
+                    }
                     accountUser.getCards().add(card);
                     ObjectMapper mapper = new ObjectMapper();
                     ObjectNode outputNode = mapper.createObjectNode();

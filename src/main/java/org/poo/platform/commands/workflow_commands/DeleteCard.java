@@ -1,7 +1,6 @@
 package org.poo.platform.commands.workflow_commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.Account;
 import org.poo.platform.Card;

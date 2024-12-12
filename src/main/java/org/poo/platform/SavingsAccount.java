@@ -17,11 +17,15 @@ public class SavingsAccount extends Account {
     @Getter @Setter
     private String type;
     @Getter @Setter
-    private ArrayList<org.poo.platform.Card> cards;
+    private ArrayList<Card> cards;
     @Getter @Setter @JsonIgnore
     private double interestRate;
     @Getter @Setter @JsonIgnore
     private String alias;
+    @Getter @Setter @JsonIgnore
+    private double minBalance;
+    @Getter @Setter @JsonIgnore
+    private boolean frozen;
 
     @Override
     public ArrayList<Card> getCards() {
@@ -50,6 +54,7 @@ public class SavingsAccount extends Account {
         cards = new ArrayList<>();
         balance = 0;
         IBAN = Utils.generateIBAN();
+        minBalance = 0;
     }
 
     public SavingsAccount(SavingsAccount account) {
@@ -58,6 +63,10 @@ public class SavingsAccount extends Account {
         this.balance = account.balance;
         this.type = account.type;
         this.cards = new ArrayList<>();
+        this.interestRate = account.interestRate;
+        this.alias = account.alias;
+        this.minBalance = account.minBalance;
+        this.frozen = account.frozen;
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }

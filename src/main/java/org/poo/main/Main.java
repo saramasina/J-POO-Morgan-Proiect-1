@@ -93,6 +93,7 @@ public final class Main {
          * output.add(objectNode);
          *
          */
+
         Bank bank = new Bank(inputData, output);
         bank.start();
 

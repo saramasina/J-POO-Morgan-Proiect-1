@@ -6,27 +6,26 @@ import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class AddFunds extends Command {
+public class SetMinimumBalance extends Command {
+    private int timestamp;
     private Account account;
     private double amount;
-    private int timestamp;
 
-    public AddFunds(String IBAN, double ammount, int timestamp, ArrayList<User> users) {
-        this.amount = ammount;
+    public SetMinimumBalance(String account, double amount, int timestamp, ArrayList<User> users) {
         this.timestamp = timestamp;
+        this.amount = amount;
         for (User user : users) {
-            for (Account account_user : user.getAccounts()) {
-                if (account_user.getIBAN().equals(IBAN)) {
-                    account = account_user;
+            for (Account acc : user.getAccounts()) {
+                if (acc.getIBAN().equals(account)) {
+                    this.account = acc;
                 }
             }
         }
     }
 
-    @Override
     public void operation() {
         if (account != null) {
-            account.setBalance(account.getBalance() + amount);
+            account.setMinBalance(amount);
         }
     }
 }

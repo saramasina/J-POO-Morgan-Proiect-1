@@ -3,6 +3,7 @@ package org.poo.platform.commands.workflow_commands;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.Account;
+import org.poo.platform.CurrencyConverter;
 import org.poo.platform.Exchange;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
@@ -23,6 +24,7 @@ public class SendMoney extends Command {
     private User userTo;
     private String description;
     private String alias;
+    private CurrencyConverter converter = new CurrencyConverter();
 
     public SendMoney(String account, String receiver, double amount, int timestamp, String description, ArrayList<User> users, ArrayList<Exchange> exchangeRates, String alias) {
         this.timestamp = timestamp;
@@ -50,26 +52,16 @@ public class SendMoney extends Command {
             }
         }
         for (Exchange exchange : exchangeRates) {
-            if (exchange.getFrom().equals(fromCurrency) || exchange.getFrom().equals(toCurrency)) {
-                rate = exchange.getRate();
-                from  = exchange.getFrom();
-            }
-            if ((exchange.getTo().equals(toCurrency) && !exchange.getFrom().equals(fromCurrency)) || (exchange.getTo().equals(fromCurrency) && !exchange.getFrom().equals(toCurrency))) {
-                rate = rate * exchange.getRate();
-            }
+            converter.addExchangeRate(exchange.getFrom(), exchange.getTo(), exchange.getRate());
         }
     }
 
     @Override
     public void operation() {
-        if (fromCurrency != null && !fromCurrency.equals(toCurrency)) {
-            if (from != null && from.equals(fromCurrency)) {
-                amount = amount / rate;
-            } else {
-                amount = amount * rate;
-            }
+        if (fromCurrency != null && toCurrency != null && !fromCurrency.equals(toCurrency)) {
+            amount = converter.convert(fromCurrency, toCurrency, amount);
         }
-        if (giver != null && receiver != null && (giver.getBalance() - amount >= 0)) {
+        if (giver != null && receiver != null && (giver.getBalance() - oldAmount >= 0)) {
             giver.setBalance(giver.getBalance() - oldAmount);
             receiver.setBalance(receiver.getBalance() + amount);
 
@@ -81,6 +73,14 @@ public class SendMoney extends Command {
             outputNode.put("senderIBAN", giver.getIBAN());
             outputNode.put("receiverIBAN", receiver.getIBAN());
             outputNode.put("transferType", "sent");
+
+            userFrom.getTransactions().add(outputNode);
+        } else if (giver != null && (giver.getBalance() - oldAmount < 0) && !giver.isFrozen()) {
+            giver.setFrozen(true);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode outputNode = mapper.createObjectNode();
+            outputNode.put("description", "Insufficient funds");
+            outputNode.put("timestamp", timestamp);
 
             userFrom.getTransactions().add(outputNode);
         }

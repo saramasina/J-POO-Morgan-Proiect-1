@@ -1,5 +1,7 @@
 package org.poo.platform.commands.workflow_commands;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.Account;
 import org.poo.platform.Card;
 import org.poo.platform.User;
@@ -27,7 +29,22 @@ public class CreateOneTimeCard extends Command {
         if (user != null) {
             for (Account accountUser : user.getAccounts()) {
                 if (accountUser.getIBAN().equals(IBAN)) {
-                    accountUser.getCards().add(new Card());
+                    Card card = new Card();
+                    if (accountUser.isFrozen()) {
+                        card.setStatus("frozen");
+                    } else {
+                        card.setStatus("active");
+                    }
+                    accountUser.getCards().add(card);
+                    ObjectMapper mapper = new ObjectMapper();
+                    ObjectNode outputNode = mapper.createObjectNode();
+                    outputNode.put("description", "New card created");
+                    outputNode.put("timestamp", timestamp);
+                    outputNode.put("card", card.getCardNumber());
+                    outputNode.put("cardHolder", user.getEmail());
+                    outputNode.put("account", accountUser.getIBAN());
+
+                    user.getTransactions().add(outputNode);
                 }
             }
         }

@@ -85,6 +85,22 @@ public class Bank {
                     command = new PrintTransactions(commandInput.getEmail(), commandInput.getTimestamp(), users, output);
                     break;
                 }
+                case "checkCardStatus" : {
+                    command = new CheckCardStatus(commandInput.getCardNumber(), commandInput.getTimestamp(), users, output);
+                    break;
+                }
+                case "setMinimumBalance" : {
+                    command = new SetMinimumBalance(commandInput.getAccount(), commandInput.getAmount(), commandInput.getTimestamp(), users);
+                    break;
+                }
+                case "splitPayment" : {
+                    command = new SplitPayment(commandInput.getAccounts(), commandInput.getAmount(), commandInput.getCurrency(), commandInput.getTimestamp(), users, exchangeRates);
+                    break;
+                }
+                case "report" : {
+                    command = new Report(commandInput.getAccount(), commandInput.getStartTimestamp(), commandInput.getEndTimestamp(), commandInput.getTimestamp(), users, output);
+                    break;
+                }
             }
             if (command != null) {
                 command.operation();
