@@ -27,9 +27,9 @@ public class SplitPayment extends Command {
         totalAmount = amount;
         this.currency = currency;
         accountsIBAN = accounts;
-        for (User user : users) {
-            for (Account accountUser : user.getAccounts()) {
-                for (String account : accounts) {
+        for (String account : accounts) {
+            for (User user : users) {
+                for (Account accountUser : user.getAccounts()) {
                     if (account.equals(accountUser.getIBAN())) {
                         this.accounts.add(accountUser);
                         this.users.add(user);
@@ -44,25 +44,46 @@ public class SplitPayment extends Command {
 
     @Override
     public void operation() {
-        for (User user : users) {
-            Account accountUser = accounts.remove(0);
+        String IBAN = null;
+        for (Account accountUser : accounts) {
             double amountToPay;
             if (!accountUser.getCurrency().equals(currency)) {
-                amountToPay = converter.convert(accountUser.getCurrency(), currency, amount);
+                amountToPay = converter.convert(currency, accountUser.getCurrency(), amount);
             } else {
                 amountToPay = amount;
             }
-            if (accountUser.getBalance() - amountToPay < accountUser.getMinBalance()) {
-                for (User userError : users) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    ObjectNode outputNode = mapper.createObjectNode();
-                    outputNode.put("description", "Insufficient funds");
-                    outputNode.put("timestamp", timestamp);
-
-                    userError.getTransactions().add(outputNode);
-                }
-                return;
+            if (accountUser.getBalance() - amountToPay < accountUser.getMinBalance() || accountUser.getBalance() - amountToPay < 0) {
+                IBAN = accountUser.getIBAN();
             }
+        }
+
+        if (IBAN != null) {
+            for (Account account : accounts) {
+                ObjectMapper mapper = new ObjectMapper();
+                ObjectNode outputNode = mapper.createObjectNode();
+                outputNode.put("description", String.format("Split payment of %.2f %s", totalAmount, currency));
+                outputNode.put("timestamp", timestamp);
+                outputNode.put("currency", currency);
+                outputNode.put("amount", amount);
+                outputNode.put("error", "Account " + IBAN + " has insufficient funds for a split payment.");
+                outputNode.putPOJO("involvedAccounts", accountsIBAN);
+
+                account.getTransactions().add(outputNode);
+            }
+            return;
+        }
+        setBalances();
+    }
+
+    private void setBalances() {
+        for (Account accountUser : accounts) {
+            double amountToPay;
+            if (!accountUser.getCurrency().equals(currency)) {
+                amountToPay = converter.convert(currency, accountUser.getCurrency(), amount);
+            } else {
+                amountToPay = amount;
+            }
+
             accountUser.setBalance(accountUser.getBalance() - amountToPay);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -73,7 +94,7 @@ public class SplitPayment extends Command {
             outputNode.put("amount", amount);
             outputNode.putPOJO("involvedAccounts", accountsIBAN);
 
-            user.getTransactions().add(outputNode);
+            accountUser.getTransactions().add(outputNode);
         }
     }
 }

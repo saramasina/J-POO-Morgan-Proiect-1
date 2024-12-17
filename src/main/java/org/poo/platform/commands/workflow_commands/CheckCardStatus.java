@@ -16,6 +16,7 @@ public class CheckCardStatus extends Command {
     private User user;
     private Account account;
     private ArrayNode output;
+    private Card card;
 
     public CheckCardStatus(String cardNumber, int timestamp, ArrayList<User> users, ArrayNode output) {
         this.timestamp = timestamp;
@@ -26,6 +27,7 @@ public class CheckCardStatus extends Command {
                     if (card.getCardNumber().equals(cardNumber)) {
                         this.user = user;
                         this.account = account;
+                        this.card = card;
                     }
                 }
             }
@@ -48,7 +50,9 @@ public class CheckCardStatus extends Command {
                 outputNode.put("description", "You have reached the minimum amount of funds, the card will be frozen");
                 outputNode.put("timestamp", timestamp);
 
-                user.getTransactions().add(outputNode);
+                card.setStatus("frozen");
+
+                account.getTransactions().add(outputNode);
             }
         } else {
             ObjectMapper mapper = new ObjectMapper();

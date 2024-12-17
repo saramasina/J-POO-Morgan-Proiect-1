@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.poo.platform.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class PrintTransactions extends Command {
     private int timestamp;
@@ -31,10 +34,21 @@ public class PrintTransactions extends Command {
         ArrayNode outputTransactions = mapper.createArrayNode();
         objectNode.put("command", "printTransactions");
 
-        for (JsonNode node : user.getTransactions()) {
-            ObjectNode newNode = node.deepCopy();
-            outputTransactions.add(newNode);
+        for (Account account : user.getAccounts()) {
+            for (JsonNode node : account.getTransactions()) {
+                ObjectNode newNode = node.deepCopy();
+                outputTransactions.add(newNode);
+            }
         }
+
+        List<JsonNode> nodeList = new ArrayList<>();
+        outputTransactions.forEach(nodeList::add);
+
+        nodeList.sort(Comparator.comparing(node -> node.get("timestamp").asInt()));
+
+        // Reconstruim ArrayNode cu nodurile sortate
+        outputTransactions = mapper.createArrayNode();
+        nodeList.forEach(outputTransactions::add);
 
         objectNode.putPOJO("output", outputTransactions);
 

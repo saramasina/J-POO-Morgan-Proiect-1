@@ -46,12 +46,26 @@ public class Report extends Command{
             outputNode.put("IBAN", account.getIBAN());
             outputNode.put("balance", account.getBalance());
             outputNode.put("currency", account.getCurrency());
-            for (JsonNode node : user.getTransactions()) {
+            for (JsonNode node : account.getTransactions()) {
                 if (node.get("timestamp").asInt() >= startTimestamp && node.get("timestamp").asInt() <= endTimestamp) {
                     copyOutput.add(node);
                 }
             }
             outputNode.putPOJO("transactions", copyOutput);
+
+            objectNode.set("output", outputNode);
+
+            // Add additional fields
+            objectNode.putPOJO("timestamp", timestamp);
+            output.add(objectNode);
+        } else {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode objectNode = mapper.createObjectNode();
+            objectNode.put("command", "report");
+
+            ObjectNode outputNode = mapper.createObjectNode();
+            outputNode.put("description", "Account not found");
+            outputNode.put("timestamp", timestamp);
 
             objectNode.set("output", outputNode);
 

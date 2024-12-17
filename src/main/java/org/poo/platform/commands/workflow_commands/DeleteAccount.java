@@ -33,9 +33,7 @@ public class DeleteAccount extends Command {
     @Override
     public void operation() {
         if (account != null && account.getBalance() == 0) {
-            int index = user.getAccounts().indexOf(account);
-            user.getAccounts().remove(index);
-
+            user.getAccounts().remove(account);
 
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode objectNode = mapper.createObjectNode();
@@ -57,13 +55,19 @@ public class DeleteAccount extends Command {
 
             ObjectNode outputNode = mapper.createObjectNode();
             outputNode.put("error", "Account couldn't be deleted - see org.poo.transactions for details");
-            outputNode.putPOJO("timestamp", timestamp);
+            outputNode.put("timestamp", timestamp);
 
             objectNode.set("output", outputNode);
 
             // Add additional fields
             objectNode.putPOJO("timestamp", timestamp);
             output.add(objectNode);
+
+            ObjectNode outputNodeUser = mapper.createObjectNode();
+            outputNodeUser.put("description", "Account couldn't be deleted - there are funds remaining");
+            outputNodeUser.put("timestamp", timestamp);
+
+            account.getTransactions().add(outputNodeUser);
         }
     }
 }

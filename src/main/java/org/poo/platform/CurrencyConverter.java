@@ -35,7 +35,7 @@ public class CurrencyConverter {
                     visited.put(neighbor.getKey(), newRate);
 
                     if (neighbor.getKey().equals(to)) {
-                        return amount / newRate; // Găsit rata finală
+                        return amount * newRate; // Găsit rata finală
                     }
 
                     queue.add(neighbor.getKey());

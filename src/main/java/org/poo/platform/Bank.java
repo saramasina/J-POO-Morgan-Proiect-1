@@ -41,16 +41,16 @@ public class Bank {
         for (CommandInput commandInput : input.getCommands()) {
             Command command = null;
             switch (commandInput.getCommand()) {
+                case "addAccount" : {
+                    command = new AddAccount(commandInput.getEmail(), commandInput.getCurrency(), commandInput.getAccountType(), commandInput.getTimestamp(), commandInput.getInterestRate(), users);
+                    break;
+                }
                 case "deleteAccount" : {
                     command = new DeleteAccount(commandInput.getAccount(), commandInput.getTimestamp(), commandInput.getEmail(), users, output);
                     break;
                 }
                 case "printUsers" : {
                     command = new PrintUsers(users, commandInput.getTimestamp(), output);
-                    break;
-                }
-                case "addAccount" : {
-                    command = new AddAccount(commandInput.getEmail(), commandInput.getCurrency(), commandInput.getAccountType(), commandInput.getTimestamp(), commandInput.getInterestRate(), users);
                     break;
                 }
                 case "addFunds" : {
@@ -99,6 +99,18 @@ public class Bank {
                 }
                 case "report" : {
                     command = new Report(commandInput.getAccount(), commandInput.getStartTimestamp(), commandInput.getEndTimestamp(), commandInput.getTimestamp(), users, output);
+                    break;
+                }
+                case "spendingsReport" : {
+                    command = new SpendingsReport(commandInput.getAccount(), commandInput.getStartTimestamp(), commandInput.getEndTimestamp(), commandInput.getTimestamp(), users, output);
+                    break;
+                }
+                case "addInterest" : {
+                    command = new AddInterest(commandInput.getAccount(), commandInput.getTimestamp(), users, output);
+                    break;
+                }
+                case "changeInterestRate" : {
+                    command = new ChangeInterestRate(commandInput.getInterestRate(), commandInput.getAccount(), commandInput.getTimestamp(), users, output);
                     break;
                 }
             }

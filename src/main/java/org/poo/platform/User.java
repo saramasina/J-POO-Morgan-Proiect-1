@@ -17,16 +17,12 @@ public class User {
     private String email;
     @Getter @Setter
     private ArrayList<Account> accounts;
-    @Getter @Setter @JsonIgnore
-    private ArrayNode transactions;
 
     public User(String firstName, String lastName, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         accounts = new ArrayList<>();
-        ObjectMapper mapper = new ObjectMapper();
-        transactions = mapper.createArrayNode();
     }
 
     public void addAccount(Account account) {
@@ -38,7 +34,7 @@ public class User {
         this.lastName = user.lastName;
         this.email = user.email;
         this.accounts = new ArrayList<>();
-        if (user.getAccounts().size() != 0) {
+        if (!user.getAccounts().isEmpty()) {
             for (Account account_out : user.accounts) {
                 this.accounts.add(Account.copyAccount(account_out));
             }

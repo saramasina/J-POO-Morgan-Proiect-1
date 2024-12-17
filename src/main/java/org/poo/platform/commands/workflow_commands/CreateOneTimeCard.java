@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.Account;
 import org.poo.platform.Card;
+import org.poo.platform.OneTimeCard;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
@@ -29,22 +30,19 @@ public class CreateOneTimeCard extends Command {
         if (user != null) {
             for (Account accountUser : user.getAccounts()) {
                 if (accountUser.getIBAN().equals(IBAN)) {
-                    Card card = new Card();
-                    if (accountUser.isFrozen()) {
-                        card.setStatus("frozen");
-                    } else {
-                        card.setStatus("active");
-                    }
-                    accountUser.getCards().add(card);
+                    Card newCard = new Card();
+                    newCard.setType("oneTime");
+                    newCard.setStatus("active");
+                    accountUser.getCards().add(newCard);
                     ObjectMapper mapper = new ObjectMapper();
                     ObjectNode outputNode = mapper.createObjectNode();
                     outputNode.put("description", "New card created");
                     outputNode.put("timestamp", timestamp);
-                    outputNode.put("card", card.getCardNumber());
+                    outputNode.put("card", newCard.getCardNumber());
                     outputNode.put("cardHolder", user.getEmail());
                     outputNode.put("account", accountUser.getIBAN());
 
-                    user.getTransactions().add(outputNode);
+                    accountUser.getTransactions().add(outputNode);
                 }
             }
         }

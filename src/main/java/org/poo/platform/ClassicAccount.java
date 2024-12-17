@@ -2,6 +2,8 @@ package org.poo.platform;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.poo.utils.Utils;
@@ -25,6 +27,8 @@ public class ClassicAccount extends Account{
     private double minBalance;
     @Getter @Setter @JsonIgnore
     private boolean frozen;
+    @Getter @Setter @JsonIgnore
+    private ArrayNode transactions;
 
     @Override
     public ArrayList<Card> getCards() {
@@ -52,6 +56,8 @@ public class ClassicAccount extends Account{
         balance = 0;
         cards = new ArrayList<>();
         minBalance = 0;
+        ObjectMapper mapper = new ObjectMapper();
+        transactions = mapper.createArrayNode();
     }
 
     public ClassicAccount(ClassicAccount account) {
@@ -63,6 +69,7 @@ public class ClassicAccount extends Account{
         this.alias = account.alias;
         this.minBalance = account.minBalance;
         this.frozen = account.isFrozen();
+        this.transactions = account.transactions.deepCopy();
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }

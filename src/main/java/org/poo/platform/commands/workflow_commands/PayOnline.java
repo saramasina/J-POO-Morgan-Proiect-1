@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.poo.platform.*;
 import org.poo.platform.commands.Command;
+import org.poo.utils.Utils;
 
 import java.util.ArrayList;
 
@@ -18,6 +19,7 @@ public class PayOnline extends Command {
     private ArrayNode output;
     private String commerciant;
     private User user;
+    private Card card;
     private CurrencyConverter converter = new CurrencyConverter();
 
     public PayOnline(String cardNumber, double amount, String currency, int timestamp, String description, String commerciant, String email, ArrayList<User> users, ArrayList<Exchange> exchangeRates, ArrayNode output) {
@@ -34,6 +36,7 @@ public class PayOnline extends Command {
                             this.account = account;
                             this.user = user;
                             fromCurrency = account.getCurrency();
+                            this.card = card;
                         }
                     }
                 }
@@ -57,7 +60,66 @@ public class PayOnline extends Command {
 
     @Override
     public void operation() {
-        if (account == null) {
+        if (account != null) {
+            if (fromCurrency != null && toCurrency != null && !fromCurrency.equals(toCurrency)) {
+                amount = converter.convert(toCurrency, fromCurrency, amount);
+            }
+            if (card.getStatus().equals("frozen")) {
+                ObjectMapper mapper = new ObjectMapper();
+                ObjectNode outputNode = mapper.createObjectNode();
+                outputNode.put("description", "The card is frozen");
+                outputNode.put("timestamp", timestamp);
+
+                account.getTransactions().add(outputNode);
+                return;
+            }
+            if (account.getBalance() - amount >= account.getMinBalance()) {
+                account.setBalance(account.getBalance() - amount);
+
+                ObjectMapper mapper = new ObjectMapper();
+                conditionalRound(amount, 1);
+                ObjectNode outputNode = mapper.createObjectNode();
+                outputNode.put("description", "Card payment");
+                outputNode.put("timestamp", timestamp);
+                outputNode.put("commerciant", commerciant);
+                outputNode.put("amount", amount);
+
+                account.getTransactions().add(outputNode);
+
+                if (card.getType().equals("oneTime")) {
+                    ObjectNode outputNodeRemoval = mapper.createObjectNode();
+                    outputNodeRemoval.put("description", "The card has been destroyed");
+                    outputNodeRemoval.put("timestamp", timestamp);
+                    outputNodeRemoval.put("account", account.getIBAN());
+                    outputNodeRemoval.put("card", card.getCardNumber());
+                    outputNodeRemoval.put("cardHolder", user.getEmail());
+
+                    account.getTransactions().add(outputNodeRemoval);
+
+                    account.getCards().remove(card);
+                    Card newCard = new Card();
+                    newCard.setType("oneTime");
+                    newCard.setStatus(card.getStatus());
+                    account.getCards().add(newCard);
+
+                    ObjectNode outputNodeAdd = mapper.createObjectNode();
+                    outputNodeAdd.put("description", "New card created");
+                    outputNodeAdd.put("timestamp", timestamp);
+                    outputNodeAdd.put("account", account.getIBAN());
+                    outputNodeAdd.put("card", newCard.getCardNumber());
+                    outputNodeAdd.put("cardHolder", user.getEmail());
+
+                    account.getTransactions().add(outputNodeAdd);
+                }
+            } else if (account.getBalance() - amount < account.getMinBalance()) {
+                ObjectMapper mapper = new ObjectMapper();
+                ObjectNode outputNode = mapper.createObjectNode();
+                outputNode.put("description", "Insufficient funds");
+                outputNode.put("timestamp", timestamp);
+
+                account.getTransactions().add(outputNode);
+            }
+        } else {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode objectNode = mapper.createObjectNode();
             objectNode.put("command", "payOnline");
@@ -72,44 +134,6 @@ public class PayOnline extends Command {
             objectNode.putPOJO("timestamp", timestamp);
 
             output.add(objectNode);
-        }
-        if (fromCurrency != null && toCurrency != null && !fromCurrency.equals(toCurrency)) {
-            amount = converter.convert(fromCurrency, toCurrency, amount);
-        }
-        if (account != null && ((account.getMinBalance() != 0 && (account.getBalance() - amount <= account.getMinBalance())) || account.isFrozen())) {
-            account.setFrozen(true);
-            for (Card card : account.getCards()) {
-                card.setStatus("frozen");
-            }
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode outputNode = mapper.createObjectNode();
-            outputNode.put("description", "The card is frozen");
-            outputNode.put("timestamp", timestamp);
-
-            user.getTransactions().add(outputNode);
-            return;
-        }
-        if (account != null && (account.getBalance() - amount >= 0)) {
-            account.setBalance(account.getBalance() - amount);
-
-            conditionalRound(amount, 1);
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode outputNode = mapper.createObjectNode();
-            outputNode.put("description", "Card payment");
-            outputNode.put("timestamp", timestamp);
-            outputNode.put("commerciant", commerciant);
-            outputNode.put("amount", amount);
-
-            user.getTransactions().add(outputNode);
-            return;
-        }
-        if (account != null && (account.getBalance() - amount < 0)) {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode outputNode = mapper.createObjectNode();
-            outputNode.put("description", "Insufficient funds");
-            outputNode.put("timestamp", timestamp);
-
-            user.getTransactions().add(outputNode);
         }
     }
 }

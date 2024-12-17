@@ -20,8 +20,8 @@ public class SendMoney extends Command {
     private double rate;
     private String from;
     private double oldAmount;
-    private User userFrom;
-    private User userTo;
+    private Account accountFrom;
+    private Account accountTo;
     private String description;
     private String alias;
     private CurrencyConverter converter = new CurrencyConverter();
@@ -37,17 +37,17 @@ public class SendMoney extends Command {
                 if (account != null && account.equals(acc.getIBAN())) {
                     this.giver = acc;
                     toCurrency = acc.getCurrency();
-                    this.userFrom = user;
+                    accountFrom = acc;
                 }
                 if (receiver != null && receiver.equals(acc.getIBAN())) {
                     this.receiver = acc;
                     fromCurrency = acc.getCurrency();
-                    userTo = user;
+                    accountTo = acc;
                 }
                 if (alias != null && alias.equals(acc.getAlias())) {
                     this.receiver = acc;
                     fromCurrency = acc.getCurrency();
-                    userTo = user;
+                    accountTo = acc;
                 }
             }
         }
@@ -59,7 +59,7 @@ public class SendMoney extends Command {
     @Override
     public void operation() {
         if (fromCurrency != null && toCurrency != null && !fromCurrency.equals(toCurrency)) {
-            amount = converter.convert(fromCurrency, toCurrency, amount);
+            amount = converter.convert(toCurrency, fromCurrency, amount);
         }
         if (giver != null && receiver != null && (giver.getBalance() - oldAmount >= 0)) {
             giver.setBalance(giver.getBalance() - oldAmount);
@@ -74,15 +74,27 @@ public class SendMoney extends Command {
             outputNode.put("receiverIBAN", receiver.getIBAN());
             outputNode.put("transferType", "sent");
 
-            userFrom.getTransactions().add(outputNode);
-        } else if (giver != null && (giver.getBalance() - oldAmount < 0) && !giver.isFrozen()) {
-            giver.setFrozen(true);
+            accountFrom.getTransactions().add(outputNode);
+
+            ObjectNode outputNodeTo = mapper.createObjectNode();
+            outputNodeTo.put("description", description);
+            outputNodeTo.put("timestamp", timestamp);
+            outputNodeTo.put("amount", amount + " " + fromCurrency);
+            outputNodeTo.put("senderIBAN", giver.getIBAN());
+            outputNodeTo.put("receiverIBAN", receiver.getIBAN());
+            outputNodeTo.put("transferType", "received");
+
+            accountTo.getTransactions().add(outputNodeTo);
+        } else if (giver != null && (giver.getBalance() - oldAmount < giver.getMinBalance()) && !giver.isFrozen()) {
+            if (giver.getBalance() == 0) {
+                giver.setFrozen(true);
+            }
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode outputNode = mapper.createObjectNode();
             outputNode.put("description", "Insufficient funds");
             outputNode.put("timestamp", timestamp);
 
-            userFrom.getTransactions().add(outputNode);
+            accountFrom.getTransactions().add(outputNode);
         }
     }
 }

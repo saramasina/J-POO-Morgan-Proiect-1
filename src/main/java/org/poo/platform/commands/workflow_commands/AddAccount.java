@@ -46,6 +46,6 @@ public class AddAccount extends Command {
         outputNode.put("description", "New account created");
         outputNode.put("timestamp", timestamp);
 
-        user.getTransactions().add(outputNode);
+        account.getTransactions().add(outputNode);
     }
 }

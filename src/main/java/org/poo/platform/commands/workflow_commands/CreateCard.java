@@ -36,6 +36,7 @@ public class CreateCard extends Command {
                     } else {
                         card.setStatus("active");
                     }
+                    card.setType("classic");
                     accountUser.getCards().add(card);
                     ObjectMapper mapper = new ObjectMapper();
                     ObjectNode outputNode = mapper.createObjectNode();
@@ -45,7 +46,7 @@ public class CreateCard extends Command {
                     outputNode.put("cardHolder", user.getEmail());
                     outputNode.put("account", accountUser.getIBAN());
 
-                    user.getTransactions().add(outputNode);
+                    accountUser.getTransactions().add(outputNode);
                 }
             }
         }

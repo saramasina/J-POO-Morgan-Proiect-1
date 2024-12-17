@@ -33,8 +33,7 @@ public class DeleteCard extends Command {
     @Override
     public void operation() {
         if (account != null) {
-            int index = account.getCards().indexOf(card);
-            account.getCards().remove(index);
+            account.getCards().remove(card);
 
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode outputNode = mapper.createObjectNode();
@@ -44,7 +43,7 @@ public class DeleteCard extends Command {
             outputNode.put("account", account.getIBAN());
             outputNode.put("timestamp", timestamp);
 
-            user.getTransactions().add(outputNode);
+            account.getTransactions().add(outputNode);
         }
     }
 }
