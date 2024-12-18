@@ -17,9 +17,9 @@ public class CommandFactory {
         report, sendMoney, setAlias, setMinimumBalance, spendingsReport, splitPayment
     }
 
-    public static Command createCommand(CommandType commandType, CommandInput commandInput,
-                                        ArrayList<User> users, ArrayList<Exchange> exchangeRates,
-                                        ArrayNode output)  {
+    public static Command createCommand(final CommandType commandType, final CommandInput commandInput,
+                                        final ArrayList<User> users, final ArrayList<Exchange> exchangeRates,
+                                        final ArrayNode output)  {
         return switch (commandType) {
             case addAccount -> new AddAccount(commandInput.getEmail(),
                     commandInput.getCurrency(), commandInput.getAccountType(),

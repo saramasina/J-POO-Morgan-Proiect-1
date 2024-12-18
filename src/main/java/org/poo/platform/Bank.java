@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-public class Bank {
+public final class Bank {
     private final ArrayList<User> users;
     private final ArrayList<Exchange> exchangeRates;
     private ArrayList<Commerciant> commerciants;
@@ -59,7 +59,6 @@ public class Bank {
                         commerciant.getDescription(), commerciant.getId()));
             }
         }
-
     }
 
     /**
@@ -67,7 +66,7 @@ public class Bank {
      * Method that starts the entire bank system and
      * maps the commands, executing them
      */
-    public final void start() {
+    public void start() {
         CommandExecutor commandExecutor = new CommandExecutor();
 
         Stream<CommandInput> stream = Arrays.stream(input.getCommands());
