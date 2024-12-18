@@ -1,25 +1,26 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class AddInterest extends Command{
+public final class AddInterest implements Command {
     private int timestamp;
     private Account account;
     private ArrayNode output;
 
-    public AddInterest(String account, int timestamp, ArrayList<User> users, ArrayNode output) {
+    public AddInterest(final String account, final int timestamp,
+                       final ArrayList<User> users, final ArrayNode output) {
         this.timestamp = timestamp;
         this.output = output;
         for (User user : users) {
             for (Account accountUser : user.getAccounts()) {
-                if (accountUser.getIBAN().equals(account)) {
+                if (accountUser.getIban().equals(account)) {
                     this.account = accountUser;
                 }
             }
@@ -40,7 +41,6 @@ public class AddInterest extends Command{
 
                 objectNode.set("output", outputNode);
 
-                // Add additional fields
                 objectNode.putPOJO("timestamp", timestamp);
 
                 output.add(objectNode);

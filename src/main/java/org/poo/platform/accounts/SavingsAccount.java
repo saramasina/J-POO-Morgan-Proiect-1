@@ -1,26 +1,26 @@
-package org.poo.platform;
+package org.poo.platform.accounts;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Getter;
 import lombok.Setter;
+import org.poo.platform.Card;
 import org.poo.utils.Utils;
 
 import java.util.ArrayList;
 
-public class ClassicAccount extends Account{
+public final class SavingsAccount extends Account {
     @Getter @Setter
     private String currency;
-    @Getter @Setter @JsonProperty("IBAN")
-    private String IBAN;
+    private String iban;
     @Getter @Setter
     private double balance;
     @Getter @Setter
     private String type;
-    @Getter @Setter
     private ArrayList<Card> cards;
+    @Getter @Setter @JsonIgnore
+    private double interestRate;
     @Getter @Setter @JsonIgnore
     private String alias;
     @Getter @Setter @JsonIgnore
@@ -34,44 +34,49 @@ public class ClassicAccount extends Account{
     public ArrayList<Card> getCards() {
         return cards;
     }
-
-    public void setCards(ArrayList<Card> cards) {
+    @Override
+    public void setCards(final ArrayList<Card> cards) {
         this.cards = cards;
     }
 
     @Override
-    public String getIBAN() {
-        return IBAN;
+    public String getIban() {
+        return iban;
     }
 
     @Override
-    public void setIBAN(String IBAN) {
-        this.IBAN = IBAN;
+    public void setIban(final String iban) {
+        this.iban = iban;
     }
 
-    public ClassicAccount(String currency) {
+    public SavingsAccount(final String currency,
+                          final double interestRate) {
         this.currency = currency;
-        type = "classic";
-        IBAN = Utils.generateIBAN();
-        balance = 0;
+        this.interestRate = interestRate;
+        type = "savings";
         cards = new ArrayList<>();
+        balance = 0;
+        iban = Utils.generateIBAN();
         minBalance = 0;
         ObjectMapper mapper = new ObjectMapper();
         transactions = mapper.createArrayNode();
     }
 
-    public ClassicAccount(ClassicAccount account) {
+    public SavingsAccount(final SavingsAccount account) {
         this.currency = account.currency;
-        this.IBAN = account.IBAN;
+        this.iban = account.iban;
         this.balance = account.balance;
         this.type = account.type;
         this.cards = new ArrayList<>();
+        this.interestRate = account.interestRate;
         this.alias = account.alias;
         this.minBalance = account.minBalance;
-        this.frozen = account.isFrozen();
+        this.frozen = account.frozen;
         this.transactions = account.transactions.deepCopy();
         for (Card card : account.cards) {
             this.cards.add(new Card(card));
         }
+        this.interestRate = account.interestRate;
+        this.alias = account.alias;
     }
 }

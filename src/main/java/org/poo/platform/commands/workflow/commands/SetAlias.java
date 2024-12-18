@@ -1,24 +1,23 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class SetAlias extends Command {
+public final class SetAlias implements Command {
     private Account account;
     private String alias;
-    private int timestamp;
 
-    public SetAlias(String email, String account, String alias, int timestamp, ArrayList<User> users) {
-        this.timestamp = timestamp;
+    public SetAlias(final String email, final String account,
+                    final String alias, final ArrayList<User> users) {
         this.alias = alias;
         for (User user : users) {
             if (user.getEmail().equals(email)) {
-                for (Account account_user : user.getAccounts()) {
-                    if (account_user.equals(account)) {
-                        this.account = account_user;
+                for (Account accountUser : user.getAccounts()) {
+                    if (accountUser.equals(account)) {
+                        this.account = accountUser;
                     }
                 }
             }

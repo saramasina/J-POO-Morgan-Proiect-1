@@ -13,12 +13,15 @@ public class Card {
     @Getter @Setter @JsonIgnore
     private String type;
 
-    public Card() {
+    public Card(final String type) {
         cardNumber = Utils.generateCardNumber();
+        status = "active";
+        this.type = type;
     }
 
-    public Card(Card card) {
+    public Card(final Card card) {
         cardNumber = card.getCardNumber();
         status = card.getStatus();
+        type = card.type;
     }
 }

@@ -1,4 +1,4 @@
-package org.poo.platform;
+package org.poo.platform.exchange;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,8 @@ public class Exchange {
     @Getter @Setter
     private int timestamp;
 
-    public Exchange(String from, int timestamp, double rate, String to) {
+    public Exchange(final String from, final int timestamp,
+                    final double rate, final String to) {
         this.from = from;
         this.timestamp = timestamp;
         this.rate = rate;

@@ -7,7 +7,8 @@ public class Commerciant {
     private String description;
     private List<String> commerciants;
 
-    public Commerciant(List<String> commerciants, String description, int id) {
+    public Commerciant(final List<String> commerciants,
+                       final String description, final int id) {
         this.commerciants = commerciants;
         this.description = description;
         this.id = id;

@@ -1,34 +1,33 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class Report extends Command{
-    private int startTimestamp;
-    private int endTimestamp;
-    private int timestamp;
+public final class Report implements Command {
+    private final int startTimestamp;
+    private final int endTimestamp;
+    private final int timestamp;
     private Account account;
-    private ArrayNode output;
-    private ArrayNode copyOutput;
-    private User user;
+    private final ArrayNode output;
 
-    public Report(String account, int startTimestamp, int endTimestamp, int timestamp, ArrayList<User> users, ArrayNode output) {
+    public Report(final String account, final int startTimestamp, final int endTimestamp,
+                  final int timestamp, final ArrayList<User> users,
+                  final ArrayNode output) {
         this.startTimestamp = startTimestamp;
         this.endTimestamp = endTimestamp;
         this.timestamp = timestamp;
         this.output = output;
-        for (User user : users) {
-            for (Account accountUser : user.getAccounts()) {
-                if (accountUser.getIBAN().equals(account)) {
+        for (User userIter : users) {
+            for (Account accountUser : userIter.getAccounts()) {
+                if (accountUser.getIban().equals(account)) {
                     this.account = accountUser;
-                    this.user = user;
                 }
             }
         }
@@ -36,31 +35,27 @@ public class Report extends Command{
 
     @Override
     public void operation() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode objectNode = mapper.createObjectNode();
+
         if (account != null) {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode objectNode = mapper.createObjectNode();
-            copyOutput = mapper.createArrayNode();
+            ArrayNode copyOutput = mapper.createArrayNode();
             objectNode.put("command", "report");
 
             ObjectNode outputNode = mapper.createObjectNode();
-            outputNode.put("IBAN", account.getIBAN());
+            outputNode.put("IBAN", account.getIban());
             outputNode.put("balance", account.getBalance());
             outputNode.put("currency", account.getCurrency());
             for (JsonNode node : account.getTransactions()) {
-                if (node.get("timestamp").asInt() >= startTimestamp && node.get("timestamp").asInt() <= endTimestamp) {
+                if (node.get("timestamp").asInt() >= startTimestamp
+                        && node.get("timestamp").asInt() <= endTimestamp) {
                     copyOutput.add(node);
                 }
             }
             outputNode.putPOJO("transactions", copyOutput);
 
             objectNode.set("output", outputNode);
-
-            // Add additional fields
-            objectNode.putPOJO("timestamp", timestamp);
-            output.add(objectNode);
         } else {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode objectNode = mapper.createObjectNode();
             objectNode.put("command", "report");
 
             ObjectNode outputNode = mapper.createObjectNode();
@@ -68,10 +63,8 @@ public class Report extends Command{
             outputNode.put("timestamp", timestamp);
 
             objectNode.set("output", outputNode);
-
-            // Add additional fields
-            objectNode.putPOJO("timestamp", timestamp);
-            output.add(objectNode);
         }
+        objectNode.putPOJO("timestamp", timestamp);
+        output.add(objectNode);
     }
 }

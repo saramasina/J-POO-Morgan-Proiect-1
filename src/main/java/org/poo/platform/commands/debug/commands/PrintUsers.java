@@ -1,4 +1,4 @@
-package org.poo.platform.commands.debug_commands;
+package org.poo.platform.commands.debug.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -8,15 +8,16 @@ import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class PrintUsers extends Command {
+public final class PrintUsers implements Command {
     private ArrayList<User> users;
     private int timestamp;
     private ArrayNode output;
 
-    public PrintUsers(ArrayList<User> users_out, int timestamp, ArrayNode output) {
+    public PrintUsers(final ArrayList<User> usersOut, final int timestamp,
+                      final ArrayNode output) {
         users = new ArrayList<>();
-        for (User user_iter : users_out) {
-            users.add(new User(user_iter));
+        for (User userIter : usersOut) {
+            users.add(new User(userIter));
         }
         this.timestamp = timestamp;
         this.output = output;

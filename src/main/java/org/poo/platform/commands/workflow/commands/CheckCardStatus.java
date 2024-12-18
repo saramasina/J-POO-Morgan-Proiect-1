@@ -1,53 +1,51 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.Card;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-public class CheckCardStatus extends Command {
+public final class CheckCardStatus implements Command {
     private int timestamp;
     private User user;
     private Account account;
     private ArrayNode output;
     private Card card;
+    private static final int MINDIFFERENCE = 30;
 
-    public CheckCardStatus(String cardNumber, int timestamp, ArrayList<User> users, ArrayNode output) {
+    public CheckCardStatus(final String cardNumber, final int timestamp,
+                           final ArrayList<User> users, final ArrayNode output) {
         this.timestamp = timestamp;
         this.output = output;
-        for (User user : users) {
-            for (Account account : user.getAccounts()) {
-                for (Card card : account.getCards()) {
-                    if (card.getCardNumber().equals(cardNumber)) {
-                        this.user = user;
-                        this.account = account;
-                        this.card = card;
+        for (User userIter : users) {
+            for (Account accountIter : userIter.getAccounts()) {
+                for (Card cardIter : accountIter.getCards()) {
+                    if (cardIter.getCardNumber().equals(cardNumber)) {
+                        this.user = userIter;
+                        this.account = accountIter;
+                        this.card = cardIter;
                     }
                 }
             }
         }
     }
 
+    /**
+     * Freezes the card if the balance is 0 or approaching
+     * the minimum balance (operation done only if this command is called!)
+     */
     public void operation() {
         if (account != null && user != null) {
-//            if (account.isFrozen() == true) {
-//                ObjectMapper mapper = new ObjectMapper();
-//                ObjectNode outputNode = mapper.createObjectNode();
-//                outputNode.put("description", "The card is frozen");
-//                outputNode.put("timestamp", timestamp);
-//
-//                user.getTransactions().add(outputNode);
-//            }
-            if (account.getBalance() == 0 || (account.getBalance() - account.getMinBalance() <= 30)) {
+            if (account.getBalance() == 0
+                    || (account.getBalance() - account.getMinBalance() <= MINDIFFERENCE)) {
                 ObjectMapper mapper = new ObjectMapper();
                 ObjectNode outputNode = mapper.createObjectNode();
-                outputNode.put("description", "You have reached the minimum amount of funds, the card will be frozen");
+                outputNode.put("description",
+                        "You have reached the minimum amount of funds, the card will be frozen");
                 outputNode.put("timestamp", timestamp);
 
                 card.setStatus("frozen");
@@ -65,7 +63,6 @@ public class CheckCardStatus extends Command {
 
             objectNode.set("output", outputNode);
 
-            // Add additional fields
             objectNode.putPOJO("timestamp", timestamp);
             output.add(objectNode);
         }

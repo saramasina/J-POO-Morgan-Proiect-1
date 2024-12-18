@@ -1,39 +1,38 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
-import org.poo.platform.ClassicAccount;
-import org.poo.platform.SavingsAccount;
+import org.poo.platform.accounts.Account;
+import org.poo.platform.accounts.ClassicAccount;
+import org.poo.platform.accounts.SavingsAccount;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class AddAccount extends Command {
-    private String email;
+public final class AddAccount implements Command {
     private String currency;
     private String accountType;
     private int timestamp;
     private double interestRate;
     private User user;
 
-    public AddAccount(String email, String currency, String accountType, int timestamp, double interestRate, ArrayList<User> users) {
-        this.email = email;
+    public AddAccount(final String email, final String currency, final String accountType,
+                      final int timestamp, final double interestRate, final ArrayList<User> users) {
         this.currency = currency;
         this.accountType = accountType;
         this.timestamp = timestamp;
         this.interestRate = interestRate;
-        for (User user : users) {
-            if (user.getEmail().equals(email)) {
-                this.user = user;
+        for (User userIter : users) {
+            if (userIter.getEmail().equals(email)) {
+                this.user = userIter;
             }
         }
     }
 
     @Override
     public void operation() {
-        Account account = null;
+        Account account;
         if (accountType.equals("classic")) {
             account = new ClassicAccount(currency);
         } else {

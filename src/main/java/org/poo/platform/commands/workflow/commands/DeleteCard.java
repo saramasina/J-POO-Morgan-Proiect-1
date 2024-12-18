@@ -1,29 +1,30 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.Card;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class DeleteCard extends Command {
-    private int timestamp;
+public final class DeleteCard implements Command {
+    private final int timestamp;
     private Account account;
     private Card card;
     private User user;
 
-    public DeleteCard(String cardNumber, int timestamp, ArrayList<User> users) {
+    public DeleteCard(final String cardNumber, final int timestamp,
+                      final ArrayList<User> users) {
         this.timestamp = timestamp;
-        for (User user : users) {
-            for (Account account : user.getAccounts()) {
-                for (Card card : account.getCards()) {
-                    if (card.getCardNumber().equals(cardNumber)) {
-                        this.account = account;
-                        this.card = card;
-                        this.user = user;
+        for (User userIter : users) {
+            for (Account accountIter : userIter.getAccounts()) {
+                for (Card cardIter : accountIter.getCards()) {
+                    if (cardIter.getCardNumber().equals(cardNumber)) {
+                        account = accountIter;
+                        card = cardIter;
+                        user = userIter;
                     }
                 }
             }
@@ -40,7 +41,7 @@ public class DeleteCard extends Command {
             outputNode.put("description", "The card has been destroyed");
             outputNode.put("card", card.getCardNumber());
             outputNode.put("cardHolder", user.getEmail());
-            outputNode.put("account", account.getIBAN());
+            outputNode.put("account", account.getIban());
             outputNode.put("timestamp", timestamp);
 
             account.getTransactions().add(outputNode);

@@ -1,36 +1,39 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
-import org.poo.platform.CurrencyConverter;
-import org.poo.platform.Exchange;
+import org.poo.platform.accounts.Account;
+import org.poo.platform.exchange.CurrencyConverter;
+import org.poo.platform.exchange.Exchange;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SplitPayment extends Command {
+public final class SplitPayment implements Command {
     private ArrayList<Account> accounts = new ArrayList<>();
     private ArrayList<User> users = new ArrayList<>();
-    private List<String> accountsIBAN;
+    private List<String> accountsIban;
     private double amount;
     private double totalAmount;
     private int timestamp;
     private CurrencyConverter converter = new CurrencyConverter();
     private String currency;
 
-    public SplitPayment(List<String> accounts, double amount, String currency, int timestamp, ArrayList<User> users, ArrayList<Exchange> exchangeRates) {
+    public SplitPayment(final List<String> accounts, final double amount,
+                        final String currency, final int timestamp,
+                        final ArrayList<User> users, final ArrayList<Exchange> exchangeRates) {
         this.timestamp = timestamp;
         this.amount = amount / accounts.size();
         totalAmount = amount;
         this.currency = currency;
-        accountsIBAN = accounts;
+        accountsIban = accounts;
         for (String account : accounts) {
             for (User user : users) {
                 for (Account accountUser : user.getAccounts()) {
-                    if (account.equals(accountUser.getIBAN())) {
+                    // create ArrayLists with the users and their accounts
+                    if (account.equals(accountUser.getIban())) {
                         this.accounts.add(accountUser);
                         this.users.add(user);
                     }
@@ -42,9 +45,14 @@ public class SplitPayment extends Command {
         }
     }
 
+    /**
+     * Processes a split payment operation
+     * by verifying account balances and performing the transaction.
+     * If any account has insufficient funds, appropriate error details are logged.
+     */
     @Override
     public void operation() {
-        String IBAN = null;
+        String iban = null;
         for (Account accountUser : accounts) {
             double amountToPay;
             if (!accountUser.getCurrency().equals(currency)) {
@@ -52,21 +60,25 @@ public class SplitPayment extends Command {
             } else {
                 amountToPay = amount;
             }
-            if (accountUser.getBalance() - amountToPay < accountUser.getMinBalance() || accountUser.getBalance() - amountToPay < 0) {
-                IBAN = accountUser.getIBAN();
+            // we need the last account listed that has insufficient funds for the transaction
+            if (accountUser.getBalance() - amountToPay < accountUser.getMinBalance()) {
+                iban = accountUser.getIban();
             }
         }
 
-        if (IBAN != null) {
+        // one of the accounts has insufficient funds
+        if (iban != null) {
             for (Account account : accounts) {
                 ObjectMapper mapper = new ObjectMapper();
                 ObjectNode outputNode = mapper.createObjectNode();
-                outputNode.put("description", String.format("Split payment of %.2f %s", totalAmount, currency));
+                outputNode.put("description",
+                        String.format("Split payment of %.2f %s", totalAmount, currency));
                 outputNode.put("timestamp", timestamp);
                 outputNode.put("currency", currency);
                 outputNode.put("amount", amount);
-                outputNode.put("error", "Account " + IBAN + " has insufficient funds for a split payment.");
-                outputNode.putPOJO("involvedAccounts", accountsIBAN);
+                outputNode.put("error", "Account " + iban
+                        + " has insufficient funds for a split payment.");
+                outputNode.putPOJO("involvedAccounts", accountsIban);
 
                 account.getTransactions().add(outputNode);
             }
@@ -88,11 +100,12 @@ public class SplitPayment extends Command {
 
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode outputNode = mapper.createObjectNode();
-            outputNode.put("description", String.format("Split payment of %.2f %s", totalAmount, currency));
+            outputNode.put("description",
+                    String.format("Split payment of %.2f %s", totalAmount, currency));
             outputNode.put("timestamp", timestamp);
             outputNode.put("currency", currency);
             outputNode.put("amount", amount);
-            outputNode.putPOJO("involvedAccounts", accountsIBAN);
+            outputNode.putPOJO("involvedAccounts", accountsIban);
 
             accountUser.getTransactions().add(outputNode);
         }

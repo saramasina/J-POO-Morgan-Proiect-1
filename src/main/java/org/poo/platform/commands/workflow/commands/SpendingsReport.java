@@ -1,10 +1,10 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
@@ -12,26 +12,24 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class SpendingsReport extends Command {
-    private int startTimestamp;
-    private int endTimestamp;
-    private int timestamp;
+public final class SpendingsReport implements Command {
+    private final int startTimestamp;
+    private final int endTimestamp;
+    private final int timestamp;
     private Account account;
-    private ArrayNode output;
-    private ArrayNode copyOutput;
-    private ArrayNode commerciants;
-    private User user;
+    private final ArrayNode output;
 
-    public SpendingsReport(String account, int startTimestamp, int endTimestamp, int timestamp, ArrayList<User> users, ArrayNode output) {
+    public SpendingsReport(final String account, final int startTimestamp,
+                           final int endTimestamp, final int timestamp,
+                           final ArrayList<User> users, final ArrayNode output) {
         this.startTimestamp = startTimestamp;
         this.endTimestamp = endTimestamp;
         this.timestamp = timestamp;
         this.output = output;
         for (User user : users) {
             for (Account accountUser : user.getAccounts()) {
-                if (accountUser.getIBAN().equals(account)) {
+                if (accountUser.getIban().equals(account)) {
                     this.account = accountUser;
-                    this.user = user;
                 }
             }
         }
@@ -46,28 +44,30 @@ public class SpendingsReport extends Command {
                 ObjectNode objectNode = mapper.createObjectNode();
 
                 objectNode.put("command", "spendingsReport");
-                outputNode.put("error", "This kind of report is not supported for a saving account");
+                outputNode.put("error",
+                        "This kind of report is not supported for a saving account");
 
                 objectNode.set("output", outputNode);
 
-                // Add additional fields
                 objectNode.putPOJO("timestamp", timestamp);
                 output.add(objectNode);
-                return;
             } else {
                 ObjectNode objectNode = mapper.createObjectNode();
-                copyOutput = mapper.createArrayNode();
-                commerciants = mapper.createArrayNode();
+                ArrayNode copyOutput = mapper.createArrayNode();
+                ArrayNode commerciants = mapper.createArrayNode();
                 objectNode.put("command", "spendingsReport");
 
                 ObjectNode outputNode = mapper.createObjectNode();
-                outputNode.put("IBAN", account.getIBAN());
+                outputNode.put("IBAN", account.getIban());
                 outputNode.put("balance", account.getBalance());
                 outputNode.put("currency", account.getCurrency());
 
+                // create a new arrayNode with the commerciants
                 ObjectNode nodeCommerciant;
                 for (JsonNode node : account.getTransactions()) {
-                    if (node.get("timestamp").asInt() >= startTimestamp && node.get("timestamp").asInt() <= endTimestamp && node.get("description").asText().equals("Card payment")) {
+                    if (node.get("timestamp").asInt() >= startTimestamp
+                            && node.get("timestamp").asInt() <= endTimestamp
+                            && node.get("description").asText().equals("Card payment")) {
                         copyOutput.add(node);
                         nodeCommerciant = mapper.createObjectNode();
                         nodeCommerciant.put("commerciant", node.get("commerciant").asText());
@@ -80,9 +80,10 @@ public class SpendingsReport extends Command {
                 List<JsonNode> nodeList = new ArrayList<>();
                 commerciants.forEach(nodeList::add);
 
+                // sort the commerciants alphabetically, by their name
                 nodeList.sort(Comparator.comparing(node -> node.get("commerciant").asText()));
 
-                // Reconstruim ArrayNode cu nodurile sortate
+                // reconstruct the arrayNode with the sorted commerciants
                 commerciants = mapper.createArrayNode();
                 nodeList.forEach(commerciants::add);
 
@@ -91,7 +92,6 @@ public class SpendingsReport extends Command {
 
                 objectNode.set("output", outputNode);
 
-                // Add additional fields
                 objectNode.putPOJO("timestamp", timestamp);
                 output.add(objectNode);
             }
@@ -106,7 +106,6 @@ public class SpendingsReport extends Command {
 
             objectNode.set("output", outputNode);
 
-            // Add additional fields
             objectNode.putPOJO("timestamp", timestamp);
             output.add(objectNode);
         }

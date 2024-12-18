@@ -1,4 +1,4 @@
-package org.poo.platform;
+package org.poo.platform.accounts;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Getter;
 import lombok.Setter;
+import org.poo.platform.Card;
 
 import java.util.ArrayList;
 
@@ -62,15 +63,17 @@ public class Account {
         }
     }
 
-
+    /**
+     * Creates a deep-copy of the given account,
+     * using the copy constructor of each class
+     * @param account the object to be deep-copied
+     */
     public static Account copyAccount(final Account account) {
-        if (account.getType() != null) {
             if (account.getType().equals("savings")) {
                 return new SavingsAccount((SavingsAccount) account);
             } else if (account.getType().equals("classic")) {
                 return new ClassicAccount((ClassicAccount) account);
             }
-        }
         return null;
     }
 }

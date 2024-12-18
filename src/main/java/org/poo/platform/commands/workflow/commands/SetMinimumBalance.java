@@ -1,22 +1,21 @@
-package org.poo.platform.commands.workflow_commands;
+package org.poo.platform.commands.workflow.commands;
 
-import org.poo.platform.Account;
+import org.poo.platform.accounts.Account;
 import org.poo.platform.User;
 import org.poo.platform.commands.Command;
 
 import java.util.ArrayList;
 
-public class SetMinimumBalance extends Command {
-    private int timestamp;
+public final class SetMinimumBalance implements Command {
     private Account account;
-    private double amount;
+    private final double amount;
 
-    public SetMinimumBalance(String account, double amount, int timestamp, ArrayList<User> users) {
-        this.timestamp = timestamp;
+    public SetMinimumBalance(final String account, final double amount,
+                             final ArrayList<User> users) {
         this.amount = amount;
         for (User user : users) {
             for (Account acc : user.getAccounts()) {
-                if (acc.getIBAN().equals(account)) {
+                if (acc.getIban().equals(account)) {
                     this.account = acc;
                 }
             }
