@@ -42,18 +42,19 @@ public final class PrintTransactions implements Command {
             }
         }
 
+        // create a new list of transactions
         List<JsonNode> nodeList = new ArrayList<>();
         outputTransactions.forEach(nodeList::add);
 
+        // sort the transactions by their timestamp
         nodeList.sort(Comparator.comparing(node -> node.get("timestamp").asInt()));
 
-        // Reconstruim ArrayNode cu nodurile sortate
+        // add the elements back into the arrayNode
         outputTransactions = mapper.createArrayNode();
         nodeList.forEach(outputTransactions::add);
 
         objectNode.putPOJO("output", outputTransactions);
 
-        // Add additional fields
         objectNode.put("timestamp", timestamp);
 
         output.add(objectNode);

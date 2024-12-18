@@ -80,7 +80,7 @@ public final class SpendingsReport implements Command {
                 List<JsonNode> nodeList = new ArrayList<>();
                 commerciants.forEach(nodeList::add);
 
-                // sort the commerciants alphabetically, by their name
+                // sort the new list of commerciants alphabetically, by their name
                 nodeList.sort(Comparator.comparing(node -> node.get("commerciant").asText()));
 
                 // reconstruct the arrayNode with the sorted commerciants

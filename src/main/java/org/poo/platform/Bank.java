@@ -2,15 +2,14 @@ package org.poo.platform;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.poo.fileio.*;
-import org.poo.platform.commands.Command;
 import org.poo.platform.commands.CommandExecutor;
-import org.poo.platform.commands.debug.commands.PrintTransactions;
-import org.poo.platform.commands.debug.commands.PrintUsers;
-import org.poo.platform.commands.workflow.commands.*;
+import org.poo.platform.commands.CommandFactory;
 import org.poo.platform.exchange.Exchange;
 import org.poo.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 public class Bank {
     private final ArrayList<User> users;
@@ -35,8 +34,8 @@ public class Bank {
     }
 
     /**
-     * Sets up the bank's initial state by clearing existing data and populating it
-     * with new users, exchange rates, and commerciants from the input
+     * Sets up the bank's initial state by clearing existing data and adding
+     * new users, exchange rates, and commerciants from the input
      *
      * @param input  The input data containing users, exchange rates, and commerciants
      * @param output The output data structure to store the results
@@ -66,122 +65,20 @@ public class Bank {
     /**
      *
      * Method that starts the entire bank system and
-     * iterates through the commands, executing them
+     * maps the commands, executing them
      */
     public final void start() {
         CommandExecutor commandExecutor = new CommandExecutor();
 
-        for (CommandInput commandInput : input.getCommands()) {
-            Command command = null;
-            switch (commandInput.getCommand()) {
-                case "addAccount" : {
-                    command = new AddAccount(commandInput.getEmail(),
-                            commandInput.getCurrency(), commandInput.getAccountType(),
-                            commandInput.getTimestamp(), commandInput.getInterestRate(),
-                            users);
-                    break;
-                }
-                case "deleteAccount" : {
-                    command = new DeleteAccount(commandInput.getAccount(),
-                            commandInput.getTimestamp(),
-                            commandInput.getEmail(), users, output);
-                    break;
-                }
-                case "printUsers" : {
-                    command = new PrintUsers(users, commandInput.getTimestamp(), output);
-                    break;
-                }
-                case "addFunds" : {
-                    command = new AddFunds(commandInput.getAccount(),
-                            commandInput.getAmount(), users);
-                    break;
-                }
-                case "createCard" : {
-                    command = new CreateCard(commandInput.getEmail(), commandInput.getAccount(),
-                            commandInput.getTimestamp(), users);
-                    break;
-                }
-                case "createOneTimeCard" : {
-                    command = new CreateOneTimeCard(commandInput.getEmail(),
-                            commandInput.getAccount(),
-                            commandInput.getTimestamp(), users);
-                    break;
-                }
-                case "deleteCard" : {
-                    command = new DeleteCard(commandInput.getCardNumber(),
-                            commandInput.getTimestamp(), users);
-                    break;
-                }
-                case "payOnline" : {
-                    command = new PayOnline(commandInput.getCardNumber(), commandInput.getAmount(),
-                            commandInput.getCurrency(), commandInput.getTimestamp(),
-                            commandInput.getCommerciant(), commandInput.getEmail(),
-                            users, exchangeRates, output);
-                    break;
-                }
-                case "sendMoney" : {
-                    command = new SendMoney(commandInput.getAccount(), commandInput.getReceiver(),
-                            commandInput.getAmount(), commandInput.getTimestamp(),
-                            commandInput.getDescription(), users, exchangeRates,
-                            commandInput.getAlias());
-                    break;
-                }
-                case "setAlias" : {
-                    command = new SetAlias(commandInput.getEmail(), commandInput.getAccount(),
-                            commandInput.getAlias(), users);
-                    break;
-                }
-                case "printTransactions" : {
-                    command = new PrintTransactions(commandInput.getEmail(),
-                            commandInput.getTimestamp(), users, output);
-                    break;
-                }
-                case "checkCardStatus" : {
-                    command = new CheckCardStatus(commandInput.getCardNumber(),
-                            commandInput.getTimestamp(), users, output);
-                    break;
-                }
-                case "setMinimumBalance" : {
-                    command = new SetMinimumBalance(commandInput.getAccount(),
-                            commandInput.getAmount(), users);
-                    break;
-                }
-                case "splitPayment" : {
-                    command = new SplitPayment(commandInput.getAccounts(),
-                            commandInput.getAmount(), commandInput.getCurrency(),
-                            commandInput.getTimestamp(), users, exchangeRates);
-                    break;
-                }
-                case "report" : {
-                    command = new Report(commandInput.getAccount(),
-                            commandInput.getStartTimestamp(), commandInput.getEndTimestamp(),
-                            commandInput.getTimestamp(), users, output);
-                    break;
-                }
-                case "spendingsReport" : {
-                    command = new SpendingsReport(commandInput.getAccount(),
-                            commandInput.getStartTimestamp(), commandInput.getEndTimestamp(),
-                            commandInput.getTimestamp(), users, output);
-                    break;
-                }
-                case "addInterest" : {
-                    command = new AddInterest(commandInput.getAccount(),
-                            commandInput.getTimestamp(), users, output);
-                    break;
-                }
-                case "changeInterestRate" : {
-                    command = new ChangeInterestRate(commandInput.getInterestRate(),
-                            commandInput.getAccount(), commandInput.getTimestamp(),
-                            users, output);
-                    break;
-                }
-                default : {
-                    break;
-                }
-            }
-            commandExecutor.setCommand(command);
-            commandExecutor.startExecution();
-        }
+        Stream<CommandInput> stream = Arrays.stream(input.getCommands());
+        stream.map(commandInput -> {
+                    CommandFactory.CommandType commandType = CommandFactory.CommandType.valueOf(commandInput.getCommand());
+                    return CommandFactory.createCommand(commandType, commandInput, users, exchangeRates, output);
+                })
+                .forEach(command -> {
+                    commandExecutor.setCommand(command);
+                    commandExecutor.startExecution();
+                });
         Utils.resetRandom();
     }
 }
